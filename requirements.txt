@@ -1,0 +1,13 @@
+# Runtime
+httpx>=0.28,<1.0
+pydantic>=2.10,<3.0
+PyYAML>=6.0,<7.0
+pyarrow>=20.0,<27.0
+alembic>=1.13,<2.0
+boto3>=1.35,<2.0
+psycopg[binary]>=3.2,<4.0
+SQLAlchemy>=2.0,<3.0
+
+# Local verification
+pytest>=8.0,<10.0
+ruff>=0.16,<1.0

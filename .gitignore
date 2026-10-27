@@ -1,0 +1,78 @@
+# Secrets and local credentials (keep the public configuration template)
+.env
+.env.*
+*.env
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*token*.json
+.aws/
+.ssh/
+
+# Local datasets and database/storage files
+/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+*.dump
+/pg_data/
+/minio_data/
+
+# Python environments, bytecode, and build output
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Test, lint, type-check, and coverage caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+.tox/
+.nox/
+.cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Runtime state, logs, and temporary files
+.prefect/
+.ipynb_checkpoints/
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+~$*
+/tmp/
+/temp/
+
+# Local editor/agent settings and OS metadata
+.idea/
+.ai/
+.vscode/
+.codex/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# Personal approval evidence and retained private verification input
+/docs/evidence/
+/reports/

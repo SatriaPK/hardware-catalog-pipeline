@@ -1,0 +1,148 @@
+# Search coverage is configurable; counts are measured from accepted unique listings.
+schema_version: 1
+max_requests_per_run: 4000
+queries:
+- query_id: ebay-gpu-1
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: gpu
+  query: graphics card
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-ram-2
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: ram
+  query: DDR4 RAM
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-ram-3
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: ram
+  query: DDR5 RAM
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-ssd-4
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: ssd
+  query: NVMe SSD
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-ssd-5
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: ssd
+  query: SATA SSD
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-keyboard-6
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: keyboard
+  query: keyboard
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-mouse-7
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: mouse
+  query: computer mouse
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: ebay-monitor-8
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: monitor
+  query: computer monitor
+  locale: en-US
+  page_size: 200
+  max_pages: 50
+  max_results: 10000
+- query_id: rakuten-gpu-1
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: gpu
+  query: グラフィックボード
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-ram-2
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: ram
+  query: DDR4 メモリ
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-ram-3
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: ram
+  query: DDR5 メモリ
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-ssd-4
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: ssd
+  query: NVMe SSD
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-ssd-5
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: ssd
+  query: SATA SSD
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-keyboard-6
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: keyboard
+  query: キーボード
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-mouse-7
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: mouse
+  query: マウス
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
+- query_id: rakuten-monitor-8
+  provider: rakuten
+  marketplace_id: RAKUTEN_JP
+  category: monitor
+  query: モニター
+  locale: ja-JP
+  page_size: 30
+  max_pages: 100
+  max_results: 3000
