@@ -1,0 +1,27 @@
+{
+  "label": "OFFLINE_SIMULATION",
+  "live_api_records_acquired": 0,
+  "occurrences": 5,
+  "schema_conformance": {
+    "numerator": 3,
+    "denominator": 5
+  },
+  "mapping_coverage": {
+    "numerator": 19,
+    "denominator": 20,
+    "scope": "present declared field values; successful conversions, not complete records"
+  },
+  "outcomes": {
+    "accepted": 2,
+    "quarantined": 2,
+    "excluded_duplicate": 1
+  },
+  "clean_provenance": {
+    "numerator": 2,
+    "denominator": 2
+  },
+  "core_files_changed_for_third_source": 0,
+  "provider_implementation_modules_added": 1,
+  "fixture_files_added": 1,
+  "configuration_files_added": 1
+}

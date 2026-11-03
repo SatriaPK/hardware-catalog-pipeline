@@ -6,6 +6,7 @@ from pathlib import Path
 
 from botocore.exceptions import ClientError
 
+from marketplace_pipeline.providers import registry
 from marketplace_pipeline.storage.acquisition import BucketSetupError
 
 
@@ -25,7 +26,7 @@ def parser():
         if name != "init":
             command.add_argument("--run-id", required=name != "status")
         if name in ("pilot", "acquire", "resume"):
-            command.add_argument("--source", choices=("ebay", "rakuten"), required=True)
+            command.add_argument("--source", choices=registry.names(live_only=True), required=True)
         if name in ("pilot", "acquire", "resume", "collect"):
             command.add_argument(
                 "--max-requests",

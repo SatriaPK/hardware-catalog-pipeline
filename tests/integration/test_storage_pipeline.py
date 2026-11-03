@@ -54,3 +54,31 @@ def test_storage_pipeline_and_resume(source):
         http.session.close()
         engine.dispose()
     # No DROP, bucket delete or automatic cleanup.
+
+
+def test_third_source_storage_migration_and_replay():
+    from marketplace_pipeline.adapters.simulated import SimulatedAdapter
+    from tests.unit.test_extensibility import document, register, specification
+
+    register()
+    settings = Settings.from_environ(os.environ)
+    namespace = "mp_acq_" + uuid4().hex[:16]
+    engine = postgres_engine(settings)
+    client = minio_client(settings)
+    adapter = SimulatedAdapter([document()])
+    try:
+        initialize(engine, client, namespace)
+        repository = PostgresRepository(engine, namespace)
+        pipeline = Acquisition(repository, ObjectStore(client), raw_bucket(namespace), adapter)
+        pipeline.prepare("third-source", specification())
+        result = pipeline.run("third-source", 10, 10)
+        assert result["accepted"] == result["quarantined"] == 2
+        assert result["excluded_duplicate"] == 1
+        assert pipeline.run("third-source", 10, 10)["accepted"] == 2
+        assert adapter.session.attempts == 1
+        with repository.transaction() as tx:
+            assert tx.count("dim_listing") == tx.count("fact_price_snapshot") == 2
+        print("Retained isolated SIMULATION namespace:", namespace)
+    finally:
+        adapter.session.close()
+        engine.dispose()

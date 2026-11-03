@@ -11,3 +11,9 @@ SQLAlchemy>=2.0,<3.0
 # Local verification
 pytest>=8.0,<10.0
 ruff>=0.16,<1.0
+
+# Serving
+streamlit>=1.40
+numpy>=1.26
+python-dotenv>=1.0
+psycopg2-binary>=2.9

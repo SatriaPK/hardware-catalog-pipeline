@@ -1,0 +1,11 @@
+{
+  "version": "simulation-1",
+  "continuation": false,
+  "catalog": {"offers": [
+    {"identity": {"sku": "s1"}, "description": {"label": " GPU é "}, "offer": {"money": {"amount": "12.50", "code": "USD"}}, "warranty": {"months": 24}},
+    {"identity": {"sku": "s1"}, "description": {"label": " GPU é "}, "offer": {"money": {"amount": "12.50", "code": "USD"}}, "warranty": {"months": 24}},
+    {"identity": {"sku": "s2"}, "description": {"name": "Simulation GPU"}, "offer": {"cost": "2000", "currency": "JPY"}, "manufacturer": {"name": "Synthetic"}},
+    {"identity": {"sku": "bad"}, "description": {"label": "Invalid price"}, "offer": {"money": {"amount": {"unexpected": 5}, "code": "USD"}}},
+    {"description": {"label": "Missing identity"}, "offer": {"money": {"amount": "10", "code": "USD"}}}
+  ]}
+}

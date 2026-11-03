@@ -1,0 +1,15 @@
+{
+  "label": "OFFLINE_SIMULATION",
+  "python": "3.14.8",
+  "records_per_sample": 10000,
+  "samples_seconds": [
+    0.5561858999999458,
+    0.46459310000000187,
+    0.4563365000003614,
+    0.4653241999999409,
+    0.45881650000001173
+  ],
+  "median_seconds": 0.46459310000000187,
+  "records_per_second": 21524.21118608942,
+  "network_seconds": 0
+}

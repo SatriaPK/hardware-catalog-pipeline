@@ -1,0 +1,13 @@
+# SIMULATION ONLY. Load after explicit registration, never use live acquisition.
+schema_version: 1
+max_requests_per_run: 10
+queries:
+  - query_id: simulated-gpu
+    provider: simulated
+    marketplace_id: SIMULATION
+    category: gpu
+    query: synthetic GPU
+    locale: en-US
+    page_size: 50
+    max_pages: 1
+    max_results: 50

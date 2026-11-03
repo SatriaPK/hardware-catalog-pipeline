@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import httpx
 
+from marketplace_pipeline.adapters.contracts import AdapterDiagnostics, ProviderCapabilities
 from marketplace_pipeline.adapters.http import ContractError, HttpSession, envelope
 from marketplace_pipeline.adapters.rakuten_diagnostics import (
     response_structure,
@@ -24,9 +25,18 @@ class Credentials:
     secret: str = field(repr=False)
 
 
-class EbayAdapter:
+class EbayAdapter(AdapterDiagnostics):
     source_id = "ebay"
     endpoint_version = "browse-v1"
+    capabilities = ProviderCapabilities(
+        "OAuth client credentials",
+        "offset",
+        200,
+        10000,
+        10000,
+        ("configured eBay Browse marketplace",),
+        "browse-v1",
+    )
 
     def __init__(self, session: HttpSession, credentials: Credentials):
         self.session, self.credentials = session, credentials
@@ -92,9 +102,25 @@ class EbayAdapter:
         return rows, more and page * query["page_size"] < 10000
 
 
-class RakutenAdapter:
+class RakutenAdapter(AdapterDiagnostics):
     source_id = "rakuten"
     endpoint_version = "ichiba-20260701"
+    capabilities = ProviderCapabilities(
+        "applicationId + accessKey",
+        "page",
+        30,
+        100,
+        3000,
+        ("RAKUTEN_JP",),
+        "ichiba-20260701",
+    )
+
+    def diagnostics(self):
+        return dict(
+            provider_error=self.provider_error,
+            response_structure=self.response_structure,
+            schema_violations=self.schema_violations,
+        )
 
     def __init__(
         self, session: HttpSession, credentials: Credentials, *, origin: str = "", referer: str = ""

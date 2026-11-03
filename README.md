@@ -1,7 +1,12 @@
 # Panduan Penggunaan Hardware Catalog Pipeline
 
-Proyek UTS Data Engineering: **eBay + Rakuten -> MinIO RAW -> cleaning dan
- deduplication -> MinIO CLEAN/QUARANTINE -> PostgreSQL MART**.
+Pipeline katalog yang dapat ditambah sumbernya: **Source Adapter -> MinIO RAW ->
+versioned mapping dan validasi -> CLEAN/QUARANTINE -> PostgreSQL MART**.
+eBay dan Rakuten tetap menjadi integrasi API; provider ketiga adalah simulasi offline.
+
+Kontrak adapter, mapping, diagram, dan panduan sumber baru tersedia di
+[source-onboarding guide](docs/source-onboarding.md). Bukti pengujian dan batasan
+penelitian tersedia di [laporan evaluasi](docs/evaluation.md).
 
 Target adalah **100.000 listing unik valid gabungan kedua marketplace**. Jumlah
 request, objek RAW, hasil API dan snapshot harga bukan jumlah listing unik.
@@ -533,9 +538,25 @@ docker compose --profile pipeline run --no-deps pipeline python -m ruff check .
 docker compose --profile pipeline run --no-deps pipeline python -m pytest -q -s --storage-integration
 ```
 
-Verifikasi kode terakhir: **34 tests passed, 2 integration tests skipped** pada
-runtime agent. Ruff/format lulus. Live collect dan target 100.000 setelah perubahan
-belum dibuktikan oleh pengujian offline tersebut.
+Verifikasi refactor: **62 passed, 3 integration tests skipped** pada runtime agent.
+Ruff untuk `src tests migrations scripts` lulus. Pemeriksaan seluruh workspace
+menemukan 18 masalah lint pada `app.py` lokal yang sudah ada sebelum refactor.
+Storage nyata belum diuji karena Docker tidak berjalan; API nyata tidak dipanggil.
+Target 100.000 bukan jumlah data yang diperoleh oleh pengujian ini.
+
+Reproduksi lokal, memakai virtualenv yang memiliki dependensi proyek:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check src tests migrations scripts
+.\.venv\Scripts\python.exe scripts/evaluate_extensibility.py
+.\.venv\Scripts\python.exe scripts/benchmark_mapping.py
+```
+
+Run baru memakai mapping dan CLEAN v2; run lama tetap dibaca melalui kontrak v1.
+Migrasi tambahan `0007` melonggarkan CHECK nama source tanpa menghapus data.
+Terapkan melalui `init` ketika worker berhenti, setelah tes storage terisolasi
+dapat dijalankan. Lihat strategi kompatibilitas pada onboarding guide.
 
 ## 11. Panduan merapikan folder
 
@@ -550,9 +571,9 @@ penghapusan otomatis; tidak ada data yang dihapus saat pembaruan README.
 | .pytest_cache/ | Cache pytest; dibuat ulang saat tes |
 | .ruff_cache/ | Cache lint; dibuat ulang |
 | __pycache__/ dan *.pyc di src/, tests/, migrations/, scripts/ | Bytecode Python; dibuat ulang |
-| scripts/ | Saat inspeksi hanya berisi __pycache__ dari script lama; tidak ada script aktif |
+| scripts/__pycache__/ | Hanya cache; pertahankan script benchmark dan evaluasi aktif |
 | tests/contract/ | Saat inspeksi hanya berisi cache test lama |
-| tests/fixtures/ | Saat inspeksi hanya folder ebay/ dan rakuten/ kosong; tests aktif memakai mocked payload di kode |
+| tests/fixtures/ebay/ dan tests/fixtures/rakuten/ kosong | Pertahankan tests/fixtures/simulated/catalog.json yang dipakai tes aktif |
 | reports/verification/acquisition/, e2e/, pre-live-increment-1/, pre-live-increment-2/ | Folder sisa kosong, termasuk bugfix-ordering/ yang kosong |
 | reports/final/ | Saat inspeksi hanya .gitkeep; boleh dibuang jika tidak dipakai untuk pengumpulan tugas |
 
@@ -580,4 +601,4 @@ arsip tersebut. Tidak perlu menghapus .venv hanya untuk menjalankan Docker.
 
 Jangan memakai `docker compose down -v`, volume prune, DROP DATABASE atau penghapusan
 bucket untuk sekadar merapikan repository. Menghapus migrations lama juga tidak
-aman: migrasi 0001 sampai 0006 adalah rantai schema yang masih dipakai.
+aman: migrasi 0001 sampai 0007 adalah rantai schema yang masih dipakai.

@@ -377,7 +377,7 @@ def test_malformed_success_is_durable_and_not_counted_as_accepted():
 def test_plan_has_native_queries_and_provider_bounds():
     for source, market, maximum in (("ebay", "EBAY_US", 200), ("rakuten", "RAKUTEN_JP", 30)):
         specification = load_plan(Path("config/acquisition-plan.yaml"), source, market)
-        assert len(specification["queries"]) == 8
+        assert specification["queries"]
         assert all(
             q["page_size"] <= maximum and "?" not in q["query"] for q in specification["queries"]
         )

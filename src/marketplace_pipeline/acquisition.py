@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 
 from marketplace_pipeline.adapters.http import ContractError
 from marketplace_pipeline.cleaning import hash_fields, map_item
+from marketplace_pipeline.providers import registry
 from marketplace_pipeline.storage.object_store import IntegrityConflict, digest, safe_segment
 from marketplace_pipeline.storage.parquet import encode
 
@@ -22,7 +23,31 @@ class Acquisition:
 
     def prepare(self, run_id: str, plan: dict) -> None:
         safe_segment(run_id)
-        plan = {**plan, "raw_bucket": self.bucket}
+        provider = registry.get(plan["source"])
+        if plan["source"] != self.adapter.source_id:
+            raise ValueError("Adapter source mismatch")
+        if not provider.policy.live and self.objects.label != "TEST_ONLY":
+            raise ValueError("Simulated provider requires TEST_ONLY storage")
+        mapping_version = plan.get("mapping_version", provider.current_mapping)
+        spec = provider.mapping(mapping_version)
+        if self.adapter.endpoint_version not in spec.source_schema_versions:
+            raise ValueError("Mapping does not support source schema version")
+        schema_version = plan.get("canonical_schema_version", 2)
+        if schema_version not in (1, 2):
+            raise ValueError("Unsupported canonical schema")
+        if schema_version == 1 and mapping_version != "legacy-1":
+            raise ValueError("Legacy CLEAN requires legacy mapping")
+        plan = {
+            **plan,
+            "raw_bucket": self.bucket,
+            "mapping_version": mapping_version,
+            "canonical_schema_version": schema_version,
+            "source_schema_version": self.adapter.endpoint_version,
+        }
+        plan["queries"] = [
+            dict(q, mapping_version=mapping_version, canonical_schema_version=schema_version)
+            for q in plan["queries"]
+        ]
         with self.repository.transaction() as tx:
             old = tx.rows("pipeline_run", run_id=run_id)
             if old:
@@ -33,7 +58,7 @@ class Acquisition:
                 {
                     "source": plan["source"],
                     "marketplace_id": plan["marketplace_id"],
-                    "mode": "live",
+                    "mode": "live" if provider.policy.live else "fixture",
                     "started_at": datetime.now(UTC),
                     "status": "pending",
                     "query_plan_hash": hash_fields(plan),
@@ -45,7 +70,7 @@ class Acquisition:
         safe_segment(run_id)
         with self.repository.transaction() as tx:
             runs, plans = tx.rows("pipeline_run", run_id=run_id), tx.rows("run_plan", run_id=run_id)
-        if len(runs) != 1 or len(plans) != 1 or runs[0]["mode"] != "live":
+        if len(runs) != 1 or len(plans) != 1 or runs[0]["mode"] not in {"live", "fixture"}:
             raise ValueError("Unknown acquisition run")
         plan = plans[0]["plan"]
         if (
@@ -55,6 +80,12 @@ class Acquisition:
             or plan["source"] != self.adapter.source_id
         ):
             raise IntegrityConflict("Acquisition plan mismatch")
+        registry.get(plan["source"]).mapping(plan.get("mapping_version", "legacy-1"))
+        if (
+            plan.get("source_schema_version", self.adapter.endpoint_version)
+            != self.adapter.endpoint_version
+        ):
+            raise IntegrityConflict("Source schema version mismatch")
         return runs[0], plan
 
     def run(
@@ -251,6 +282,7 @@ class Acquisition:
                     "content-sha256": digest(body),
                     "request-id": request_id,
                     "observed-at": observed.isoformat(),
+                    "endpoint-version": self.adapter.endpoint_version,
                     **({"retention-until": expires.isoformat()} if expires else {}),
                 },
             )
@@ -261,6 +293,11 @@ class Acquisition:
                 or metadata.get("label") != self.objects.label
             ):
                 raise IntegrityConflict("Acquisition RAW ownership conflict")
+            if (
+                metadata.get("endpoint-version", self.adapter.endpoint_version)
+                != self.adapter.endpoint_version
+            ):
+                raise IntegrityConflict("RAW endpoint version conflict")
             observed = datetime.fromisoformat(metadata["observed-at"])
             expires = (
                 datetime.fromisoformat(metadata["retention-until"])
@@ -286,7 +323,12 @@ class Acquisition:
             tx.put(
                 "dim_marketplace",
                 {"marketplace_id": query["marketplace_id"]},
-                {"provider": query["provider"], "region": "API_PRODUCTION"},
+                {
+                    "provider": query["provider"],
+                    "region": "API_PRODUCTION"
+                    if registry.get(query["provider"]).policy.live
+                    else "SIMULATION",
+                },
             )
             for index, item in enumerate(items):
                 row, reasons, _ = map_item(
@@ -299,9 +341,15 @@ class Acquisition:
                         "request_id": request_id,
                         "observed_at": observed,
                         "ingested_at": observed,
+                        "mapping_version": query.get("mapping_version", "legacy-1"),
+                        "canonical_schema_version": query.get("canonical_schema_version", 1),
                     },
                 )
-                identity = item.get("itemId" if query["provider"] == "ebay" else "itemCode")
+                identity = (
+                    registry.get(query["provider"])
+                    .mapping(query.get("mapping_version", "legacy-1"))
+                    .identity(item)
+                )
                 key = (
                     digest(f"{query['provider']}|{query['marketplace_id']}|{identity}".encode())
                     if isinstance(identity, str) and identity.strip()
@@ -422,6 +470,8 @@ class Acquisition:
                         "request_id": request_id,
                         "observed_at": observed,
                         "ingested_at": observed,
+                        "mapping_version": query.get("mapping_version", "legacy-1"),
+                        "canonical_schema_version": query.get("canonical_schema_version", 1),
                     },
                 )
                 if row is None:
@@ -441,7 +491,7 @@ class Acquisition:
                 "clean",
                 self.clean_bucket,
                 "parquet",
-                encode(clean),
+                encode(clean, version=query.get("canonical_schema_version", 1)),
                 len(clean),
                 "application/vnd.apache.parquet",
             ),

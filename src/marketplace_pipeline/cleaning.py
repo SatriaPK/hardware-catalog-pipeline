@@ -1,6 +1,6 @@
 import hashlib
 import json
-import unicodedata
+import math
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -8,14 +8,11 @@ from typing import Any
 from pydantic import ValidationError
 
 from marketplace_pipeline.domain import CanonicalListing
+from marketplace_pipeline.mapping import MISSING, normalize, path_value
+from marketplace_pipeline.providers import registry
 
 # Conservative subset of ISO 4217. Unsupported currencies are quarantined, not guessed.
 CURRENCIES = frozenset("USD JPY HKD SGD IDR EUR GBP CNY KRW AUD CAD CHF TWD".split())
-CATEGORIES = frozenset("gpu ram ssd keyboard mouse monitor".split())
-
-
-def normalize(value: str) -> str:
-    return " ".join(unicodedata.normalize("NFC", value).split())
 
 
 def hash_fields(fields: dict) -> str:
@@ -28,31 +25,35 @@ def hash_fields(fields: dict) -> str:
 
 def map_item(item: dict, context: dict) -> tuple[CanonicalListing | None, list[str], int]:
     source = context["source"]
-    ebay = source == "ebay"
-    identity = item.get("itemId" if ebay else "itemCode")
-    title = item.get("title" if ebay else "itemName")
-    price = item.get("price") if ebay else None
-    amount = price.get("value") if isinstance(price, dict) else None
-    currency = price.get("currency") if isinstance(price, dict) else None
-    if not ebay:
-        amount = item.get("itemPrice")
-        # Explicit Japanese Ichiba context permits JPY; other marketplaces never infer it.
-        currency = (
-            item.get("currency", "JPY") if context["marketplace_id"] == "RAKUTEN_JP" else None
-        )
+    provider = registry.get(source)
+    version = context.get("mapping_version", provider.current_mapping)
+    spec = provider.mapping(version)
+    values, reasons = spec.apply(item)
+    identity, title = values.get("identity"), values.get("title")
+    amount, currency = values.get("amount"), values.get("currency")
+    policy = provider.policy
+    if policy.default_currency:
+        if context["marketplace_id"] != policy.currency_marketplace:
+            currency = None
+        elif all(
+            path_value(item, path) is MISSING
+            for rule in spec.fields
+            if rule.target == "currency"
+            for path in rule.paths
+        ):
+            currency = policy.default_currency
     observed = context["observed_at"]
     required = [source, context["marketplace_id"], identity, title, amount, currency, observed]
     present = sum(v is not None and v != "" for v in required)
-    reasons = []
     if not isinstance(identity, str) or not identity.strip():
         reasons.append("missing_or_invalid_listing_id")
     if not isinstance(title, str) or not normalize(title):
         reasons.append("missing_or_invalid_title")
     if not isinstance(currency, str) or currency not in CURRENCIES:
         reasons.append("unsupported_or_invalid_currency")
-    if not ebay and currency != "JPY":
+    if policy.required_currency and currency != policy.required_currency:
         reasons.append("currency_marketplace_mismatch")
-    if context["category"] not in CATEGORIES:
+    if context["category"] not in policy.categories:
         reasons.append("unknown_category")
     parsed: Decimal | None = None
     try:
@@ -80,8 +81,8 @@ def map_item(item: dict, context: dict) -> tuple[CanonicalListing | None, list[s
         "price_amount": parsed,
         "currency_code": currency,
         **{
-            key: normalize(item[key])
-            if isinstance(item.get(key), str) and item[key].strip()
+            key: normalize(values[key])
+            if isinstance(values.get(key), str) and values[key].strip()
             else None
             for key in ("brand", "model", "variant")
         },
@@ -99,8 +100,28 @@ def map_item(item: dict, context: dict) -> tuple[CanonicalListing | None, list[s
             ingested_at_utc=ingested.astimezone(UTC),
             title_original=title,
             record_hash=hash_fields(hashed),
+            schema_version=context.get("canonical_schema_version", 2),
+            mapping_version=version,
+            attributes_json={} if version == "legacy-1" else json_safe(item),
             **business,
         )
-    except ValidationError:
+    except (ValidationError, ValueError):
         return None, ["canonical_schema_violation"], present
     return listing, [], present
+
+
+def json_safe(value):
+    """Preserve source fields; exact Decimal values are represented as strings."""
+    if isinstance(value, Decimal):
+        if not value.is_finite():
+            raise ValueError("Non-finite extension")
+        return str(value)
+    if isinstance(value, dict):
+        if any(not isinstance(key, str) for key in value):
+            raise ValueError("Non-string extension key")
+        return {key: json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [json_safe(item) for item in value]
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("Non-finite extension")
+    return value

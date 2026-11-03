@@ -1,148 +1,139 @@
-# Search coverage is configurable; counts are measured from accepted unique listings.
+# Lanjutan: query sempit untuk menjangkau listing di luar 10.000 teratas query lama.
 schema_version: 1
 max_requests_per_run: 4000
 queries:
-- query_id: ebay-gpu-1
+- query_id: ebay-gpu-9
   provider: ebay
   marketplace_id: CONFIGURED
   category: gpu
-  query: graphics card
+  query: NVIDIA GeForce RTX
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-ram-2
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-gpu-10
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: gpu
+  query: AMD Radeon RX
+  locale: en-US
+  page_size: 200
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-ram-11
   provider: ebay
   marketplace_id: CONFIGURED
   category: ram
-  query: DDR4 RAM
+  query: laptop RAM SODIMM
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-ram-3
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-ram-12
   provider: ebay
   marketplace_id: CONFIGURED
   category: ram
-  query: DDR5 RAM
+  query: server RAM ECC
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-ssd-4
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-ssd-13
   provider: ebay
   marketplace_id: CONFIGURED
   category: ssd
-  query: NVMe SSD
+  query: M.2 SSD
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-ssd-5
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-ssd-14
   provider: ebay
   marketplace_id: CONFIGURED
   category: ssd
-  query: SATA SSD
+  query: portable external SSD
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-keyboard-6
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-keyboard-15
   provider: ebay
   marketplace_id: CONFIGURED
   category: keyboard
-  query: keyboard
+  query: mechanical gaming keyboard
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-mouse-7
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-mouse-16
   provider: ebay
   marketplace_id: CONFIGURED
   category: mouse
-  query: computer mouse
+  query: wireless gaming mouse
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: ebay-monitor-8
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-monitor-17
   provider: ebay
   marketplace_id: CONFIGURED
   category: monitor
-  query: computer monitor
+  query: gaming monitor
   locale: en-US
   page_size: 200
-  max_pages: 50
-  max_results: 10000
-- query_id: rakuten-gpu-1
+  max_pages: 25
+  max_results: 5000
+- query_id: ebay-monitor-18
+  provider: ebay
+  marketplace_id: CONFIGURED
+  category: monitor
+  query: 4K monitor
+  locale: en-US
+  page_size: 200
+  max_pages: 25
+  max_results: 5000
+- query_id: rakuten-gpu-9
   provider: rakuten
   marketplace_id: RAKUTEN_JP
   category: gpu
-  query: グラフィックボード
+  query: GeForce RTX グラフィックボード
   locale: ja-JP
   page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-ram-2
-  provider: rakuten
-  marketplace_id: RAKUTEN_JP
-  category: ram
-  query: DDR4 メモリ
-  locale: ja-JP
-  page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-ram-3
-  provider: rakuten
-  marketplace_id: RAKUTEN_JP
-  category: ram
-  query: DDR5 メモリ
-  locale: ja-JP
-  page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-ssd-4
+  max_pages: 50
+  max_results: 1500
+- query_id: rakuten-ssd-10
   provider: rakuten
   marketplace_id: RAKUTEN_JP
   category: ssd
-  query: NVMe SSD
+  query: 外付けSSD
   locale: ja-JP
   page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-ssd-5
-  provider: rakuten
-  marketplace_id: RAKUTEN_JP
-  category: ssd
-  query: SATA SSD
-  locale: ja-JP
-  page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-keyboard-6
+  max_pages: 50
+  max_results: 1500
+- query_id: rakuten-keyboard-11
   provider: rakuten
   marketplace_id: RAKUTEN_JP
   category: keyboard
-  query: キーボード
+  query: ゲーミングキーボード
   locale: ja-JP
   page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-mouse-7
+  max_pages: 50
+  max_results: 1500
+- query_id: rakuten-mouse-12
   provider: rakuten
   marketplace_id: RAKUTEN_JP
   category: mouse
-  query: マウス
+  query: ゲーミングマウス
   locale: ja-JP
   page_size: 30
-  max_pages: 100
-  max_results: 3000
-- query_id: rakuten-monitor-8
+  max_pages: 50
+  max_results: 1500
+- query_id: rakuten-monitor-13
   provider: rakuten
   marketplace_id: RAKUTEN_JP
   category: monitor
-  query: モニター
+  query: ゲーミングモニター
   locale: ja-JP
   page_size: 30
-  max_pages: 100
-  max_results: 3000
+  max_pages: 50
+  max_results: 1500
